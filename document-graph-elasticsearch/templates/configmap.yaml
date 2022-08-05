@@ -1,0 +1,39 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "document-graph-elasticsearch.fullname" . }}
+  labels:
+    {{- include "document-graph-elasticsearch.labels" . | nindent 4 }}
+data:
+  config.yml: |
+    firehose-endpoint: {{ .Values.env.firehoseEndpoint }}
+    eos-endpoint: {{ .Values.env.eosEndpoint }}
+    elastic-endpoint: {{ .Values.env.elasticEndpoint }}
+    elastic-ca: {{ .Values.env.elasticCA }}
+    prometheus-port: {{ .Values.env.prometheusPort }}
+    start-block: {{ int .Values.env.startBlock }}
+    heart-beat-frequency: {{ .Values.env.heartBeatFrequency }}
+    dfuse-api-key: {{ .Values.env.dfuseApiKey }}
+    cursor-index-prefix: {{ .Values.env.cursorIndexPrefix }}
+    add-ints-as-strings: {{ .Values.env.addIntsAsStrings }}
+    contracts:
+      {{- range .Values.env.contracts -}}
+        {{- printf "- name: %s" .name | nindent 4 }}
+        {{- printf "doc-table-name: %s" .docTableName | nindent 6 }}
+        {{- printf "edge-table-name: %s" .edgeTableName | nindent 6 }}
+        {{- printf "index-prefix: %s" .indexPrefix | nindent 6 }}
+      {{- if .edgeBlackList }}
+      edge-black-list:
+        {{- range .edgeBlackList -}}
+          {{- printf "- from: \"%s\"" .from | nindent 6 }}
+          {{- printf "to: \"%s\"" .to | nindent 8 }}
+          {{- printf "name: \"%s\"" .name | nindent 8 }}
+        {{- end }}
+      {{- end }}
+      {{- end }}
+    {{- if .Values.env.singleTextSearchField }}
+    single-text-search-field:
+      {{- range $k, $v := .Values.env.singleTextSearchField -}}
+        {{- printf "%s: %s" $k $v | nindent 6 }}
+      {{- end }}
+    {{- end }}
